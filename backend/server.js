@@ -135,6 +135,34 @@ app.post("/api/add-candidate", async (req, res) => {
   }
 });
 
+app.post("/api/open-election", async (req, res) => {
+  try {
+    if (!adminSigner) {
+      throw new Error("ADMIN_PRIVATE_KEY is required for write operations.");
+    }
+    const contract = getContract(adminSigner);
+    const tx = await contract.openElection();
+    await tx.wait();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/close-election", async (req, res) => {
+  try {
+    if (!adminSigner) {
+      throw new Error("ADMIN_PRIVATE_KEY is required for write operations.");
+    }
+    const contract = getContract(adminSigner);
+    const tx = await contract.closeElection();
+    await tx.wait();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
