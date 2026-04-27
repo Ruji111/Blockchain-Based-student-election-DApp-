@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Admin from "./Admin";
 import Login from "./Login";
+import Register from "./Register";
 import Vote from "./Vote";
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
     <div className="app-shell">
       <header>
         <h1>University Election DApp</h1>
-        <nav>
+        <nav>register">Register</a> | <a href="/login">Login</a> | <a href="/vote">Vote</a> | <a href="/admin">Admin
           <a href="/admin">Admin</a> | <a href="/login">Login</a> | <a href="/vote">Vote</a>
         </nav>
         <button onClick={connectWallet} className="connect-button">
@@ -57,9 +58,10 @@ function App() {
 
       <Routes>
         <Route path="/admin" element={<Admin />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login setVoterToken={setVoterToken} />} />
         <Route path="/vote" element={<Vote voterToken={voterToken} />} />
-        <Route path="/" element={<Navigate to="/vote" />} />
+        <Route path="/" element={<Navigate to="/register" />} />
       </Routes>
     </div>
   );
