@@ -9,6 +9,8 @@ const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
+console.log("CONTRACT_ADDRESS from env:", process.env.CONTRACT_ADDRESS);
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -46,11 +48,15 @@ function getContract(signerOrProvider) {
 
 app.get("/api/status", async (req, res) => {
   try {
+    console.log("contractAddress:", contractAddress);
     const contract = getContract();
     const electionOpen = await contract.electionOpen();
     const candidateCount = await contract.getCandidateCount();
-    res.json({ contractAddress, electionOpen, candidateCount: candidateCount.toNumber() });
+    console.log("electionOpen:", electionOpen, typeof electionOpen);
+    console.log("candidateCount:", candidateCount, typeof candidateCount);
+    res.json({ contractAddress, electionOpen, candidateCount: Number(candidateCount) });
   } catch (error) {
+    console.error("Error in /api/status:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -59,7 +65,7 @@ app.get("/api/candidates", async (req, res) => {
   try {
     const contract = getContract();
     const candidates = await contract.getCandidates();
-    res.json(candidates.map((candidate) => ({ id: candidate.id.toNumber(), name: candidate.name, voteCount: candidate.voteCount.toNumber() })));
+    res.json(candidates.map((candidate) => ({ id: Number(candidate.id), name: candidate.name, voteCount: Number(candidate.voteCount) })));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -69,7 +75,7 @@ app.get("/api/voter/:address", async (req, res) => {
   try {
     const contract = getContract();
     const voter = await contract.getVoter(req.params.address);
-    res.json({ registered: voter.registered, voted: voter.voted, vote: voter.vote.toNumber() });
+    res.json({ registered: voter.registered, voted: voter.voted, vote: Number(voter.vote) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
