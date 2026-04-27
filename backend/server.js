@@ -4,12 +4,19 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
 const { ethers } = require("ethers");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const jwtSecret = process.env.JWT_SECRET || "your-secret-key"; // Change in production
+
+// In-memory voter storage: voterId -> { passwordHash, address }
+const voters = new Map();
 
 const rpcUrl = process.env.RPC_URL || "http://127.0.0.1:8545";
 const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -70,17 +77,41 @@ app.get("/api/voter/:address", async (req, res) => {
 
 app.post("/api/register-voter", async (req, res) => {
   try {
-    if (!adminSigner) {
-      throw new Error("ADMIN_PRIVATE_KEY is required for write operations.");
+    const { voterId, password, address } = req.body;
+    if (!voterId || !password || !address) {
+      return res.status(400).json({ error: "Missing voterId, password, or address" });
     }
-    const { address } = req.body;
-    if (!address) {
-      return res.status(400).json({ error: "Missing address" });
+    if (voters.has(voterId)) {
+      return res.status(400).json({ error: "Voter ID already exists" });
     }
-    const contract = getContract(adminSigner);
-    const tx = await contract.registerVoter(address);
-    await tx.wait();
-    res.json({ success: true, address });
+    const passwordHash = await bcrypt.hash(password, 10);
+    voters.set(voterId, { passwordHash, address });
+
+    // Register on blockchain if admin signer available
+    if (adminSigner) {
+      const contract = getContract(adminSigner);
+      const tx = await contract.registerVoter(address);
+      await tx.wait();
+    }
+
+    res.json({ success: true, voterId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { voterId, password } = req.body;
+    if (!voterId || !password) {
+      return res.status(400).json({ error: "Missing voterId or password" });
+    }
+    const voter = voters.get(voterId);
+    if (!voter || !(await bcrypt.compare(password, voter.passwordHash))) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const token = jwt.sign({ voterId, address: voter.address }, jwtSecret, { expiresIn: "1h" });
+    res.json({ token, address: voter.address });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

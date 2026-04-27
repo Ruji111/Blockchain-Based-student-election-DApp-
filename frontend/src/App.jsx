@@ -1,108 +1,66 @@
 import { useEffect, useState } from "react";
-import { ethers } from "ethers";
-import { contractAddress, abi } from "./contractInfo";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Admin from "./Admin";
+import Login from "./Login";
+import Vote from "./Vote";
 
 function App() {
   const [account, setAccount] = useState("");
-  const [candidates, setCandidates] = useState([]);
-  const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
+  const [voterToken, setVoterToken] = useState(localStorage.getItem("voterToken") || "");
 
   useEffect(() => {
     if (window.ethereum) {
-      loadCandidates();
+      checkConnection();
     }
   }, []);
 
-  async function connectWallet() {
+  const checkConnection = async () => {
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (accounts.length > 0) {
+      setAccount(accounts[0]);
+      setConnected(true);
+    }
+  };
+
+  const connectWallet = async () => {
     if (!window.ethereum) {
-      setMessage("MetaMask is required for voting.");
+      alert("MetaMask is required.");
       return;
     }
-
     try {
       const [selectedAccount] = await window.ethereum.request({ method: "eth_requestAccounts" });
       setAccount(selectedAccount);
       setConnected(true);
-      setMessage("Wallet connected.");
     } catch (error) {
-      setMessage(error.message);
+      alert(error.message);
     }
-  }
+  };
 
-  async function loadCandidates() {
-    if (!window.ethereum) {
-      return;
-    }
-
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, abi, provider);
-      const items = await contract.getCandidates();
-      setCandidates(
-        items.map((item) => ({
-          id: item.id.toNumber(),
-          name: item.name,
-          voteCount: item.voteCount.toNumber()
-        }))
-      );
-    } catch (error) {
-      setMessage("Unable to load candidates. Make sure the contract is deployed.");
-    }
-  }
-
-  async function vote(candidateId) {
-    if (!connected) {
-      setMessage("Please connect your wallet first.");
-      return;
-    }
-
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, abi, signer);
-      const tx = await contract.vote(candidateId);
-      setMessage("Sending vote transaction...");
-      await tx.wait();
-      setMessage("Vote recorded successfully.");
-      loadCandidates();
-    } catch (error) {
-      setMessage(error.message);
-    }
-  }
+  const logout = () => {
+    setVoterToken("");
+    localStorage.removeItem("voterToken");
+  };
 
   return (
     <div className="app-shell">
       <header>
         <h1>University Election DApp</h1>
+        <nav>
+          <a href="/admin">Admin</a> | <a href="/login">Login</a> | <a href="/vote">Vote</a>
+        </nav>
         <button onClick={connectWallet} className="connect-button">
           {connected ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}` : "Connect Wallet"}
         </button>
+        {voterToken && <button onClick={logout}>Logout</button>}
       </header>
 
-      <section className="panel">
-        <h2>Candidates</h2>
-        {candidates.length === 0 ? (
-          <p>No candidates found. Deploy the contract and add candidates.</p>
-        ) : (
-          <ul>
-            {candidates.map((candidate) => (
-              <li key={candidate.id}>
-                <strong>{candidate.name}</strong>
-                <span>{candidate.voteCount} votes</span>
-                <button onClick={() => vote(candidate.id)}>Vote</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <footer>
-        <p>{message}</p>
-        <p>
-          Contract address: <code>{contractAddress}</code>
-        </p>
-      </footer>
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/login" element={<Login setVoterToken={setVoterToken} />} />
+        <Route path="/vote" element={<Vote voterToken={voterToken} />} />
+        <Route path="/" element={<Navigate to="/vote" />} />
+      </Routes>
     </div>
   );
 }
