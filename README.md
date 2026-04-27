@@ -48,7 +48,5 @@ A decentralized university voting app with:
 ## Usage
 
 - Visit http://localhost:5173
-- Connect MetaMask wallet
-- Use /admin to manage election
-- Voters login at /login with ID/password
-- Vote at /vote (shows results when election closed)
+- Voters: Register at /register (connect MetaMask), then login at /login, vote at /vote
+- Admins: Manage election at /admin
