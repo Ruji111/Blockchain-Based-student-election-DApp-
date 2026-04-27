@@ -1,11 +1,16 @@
 # University Election DApp
 
-A starter scaffold for a decentralized university voting app with:
+A decentralized university voting app with:
 - Solidity smart contract
 - Hardhat development environment
-- Express backend API
-- Vite + React frontend
-- Basic code quality scripts and tests
+- Express backend API with authentication
+- Vite + React frontend with routing
+
+## Features
+
+- **Admin Page**: Add candidates, open/close elections
+- **Login Page**: Voter authentication with ID/password
+- **Voting Page**: Cast votes or view results
 
 ## Setup
 
@@ -40,8 +45,10 @@ A starter scaffold for a decentralized university voting app with:
 - `npm run format` - format files with Prettier
 - `npm run dev` - run backend and frontend together
 
-## Notes
+## Usage
 
-- The frontend is configured to use MetaMask for vote transactions.
-- The backend includes read endpoints plus admin actions for candidate and voter registration.
-- Update `frontend/src/contractInfo.js` with the deployed contract address after deployment.
+- Visit http://localhost:5173
+- Connect MetaMask wallet
+- Use /admin to manage election
+- Voters login at /login with ID/password
+- Vote at /vote (shows results when election closed)
