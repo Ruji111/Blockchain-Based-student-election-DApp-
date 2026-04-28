@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import Admin from "./Admin";
+import Keys from "./Keys";
 import Login from "./Login";
 import Register from "./Register";
 import Vote from "./Vote";
@@ -43,16 +44,27 @@ function App() {
     localStorage.removeItem("voterToken");
   };
 
+  const disconnectWallet = () => {
+    setAccount("");
+    setConnected(false);
+  };
+
   return (
     <div className="app-shell">
       <header>
         <h1>University Election DApp</h1>
-        <nav>register">Register</a> | <a href="/login">Login</a> | <a href="/vote">Vote</a> | <a href="/admin">Admin
-          <a href="/admin">Admin</a> | <a href="/login">Login</a> | <a href="/vote">Vote</a>
+        <nav>
+          <Link to="/register">Register</Link> | <Link to="/login">Login</Link> | <Link to="/vote">Vote</Link> | <Link to="/admin">Admin</Link> | <Link to="/keys">Keys</Link>
         </nav>
-        <button onClick={connectWallet} className="connect-button">
-          {connected ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}` : "Connect Wallet"}
-        </button>
+        {connected ? (
+          <button onClick={disconnectWallet} className="connect-button">
+            Disconnect Wallet
+          </button>
+        ) : (
+          <button onClick={connectWallet} className="connect-button">
+            Connect Wallet
+          </button>
+        )}
         {voterToken && <button onClick={logout}>Logout</button>}
       </header>
 
@@ -61,6 +73,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login setVoterToken={setVoterToken} />} />
         <Route path="/vote" element={<Vote voterToken={voterToken} />} />
+        <Route path="/keys" element={<Keys />} />
         <Route path="/" element={<Navigate to="/register" />} />
       </Routes>
     </div>
