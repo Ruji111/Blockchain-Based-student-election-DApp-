@@ -19,19 +19,22 @@ function Vote({ voterToken }) {
 
   const loadData = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, abi, provider);
-      const items = await contract.getCandidates();
-      setCandidates(
-        items.map((item) => ({
-          id: item.id.toNumber(),
-          name: item.name,
-          voteCount: item.voteCount.toNumber()
-        }))
-      );
-      setElectionOpen(await contract.electionOpen());
+      const statusResponse = await fetch("http://localhost:4000/api/status");
+      const statusData = await statusResponse.json();
+      if (statusData.error) {
+        throw new Error(statusData.error);
+      }
+      setElectionOpen(statusData.electionOpen);
+
+      const candidateResponse = await fetch("http://localhost:4000/api/candidates");
+      const candidateData = await candidateResponse.json();
+      if (candidateData.error) {
+        throw new Error(candidateData.error);
+      }
+      setCandidates(candidateData);
+      setMessage("");
     } catch (error) {
-      setMessage("Unable to load data.");
+      setMessage(error.message || "Unable to load data.");
     }
   };
 
