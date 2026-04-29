@@ -3,11 +3,12 @@ import { ethers } from "ethers";
 import { contractAddress, abi } from "./contractInfo";
 import { Navigate } from "react-router-dom";
 
-function Vote({ voterToken }) {
+function Vote({ voterToken, walletAddress, chainId }) {
   const [candidates, setCandidates] = useState([]);
   const [electionOpen, setElectionOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [voterAddress, setVoterAddress] = useState("");
+  const [mismatchWarning, setMismatchWarning] = useState("");
 
   useEffect(() => {
     if (voterToken) {
@@ -16,6 +17,23 @@ function Vote({ voterToken }) {
       loadData();
     }
   }, [voterToken]);
+
+  useEffect(() => {
+    if (chainId && chainId !== "31337") {
+      setMismatchWarning("MetaMask is not connected to the Hardhat local network. Switch MetaMask to the Hardhat local network (chain id 31337).");
+      return;
+    }
+
+    if (voterAddress && walletAddress) {
+      if (voterAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+        setMismatchWarning("MetaMask account does not match the registered voter address. Switch MetaMask to the correct private key account.");
+      } else {
+        setMismatchWarning("");
+      }
+    } else if (!walletAddress) {
+      setMismatchWarning("MetaMask is not connected. Connect to the account that matches your registered voter address.");
+    }
+  }, [chainId, walletAddress, voterAddress]);
 
   const loadData = async () => {
     try {
@@ -43,6 +61,10 @@ function Vote({ voterToken }) {
       setMessage("MetaMask required.");
       return;
     }
+    if (mismatchWarning) {
+      setMessage("Please switch MetaMask to the correct voter account before voting.");
+      return;
+    }
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -61,9 +83,15 @@ function Vote({ voterToken }) {
     return <Navigate to="/login" />;
   }
 
+  const canVote = electionOpen && walletAddress && voterAddress && !mismatchWarning;
+
   return (
     <section className="panel">
       <h2>{electionOpen ? "Vote Now" : "Election Results"}</h2>
+      <p>Registered voter address: <code>{voterAddress || "Not set"}</code></p>
+      <p>MetaMask account: <code>{walletAddress || "Not connected"}</code></p>
+      <p>Network: <code>{chainId ? (chainId === "31337" ? "Hardhat Local (31337)" : chainId) : "Not connected"}</code></p>
+      {mismatchWarning && <p className="warning">{mismatchWarning}</p>}
       {candidates.length === 0 ? (
         <p>No candidates.</p>
       ) : (
@@ -72,11 +100,16 @@ function Vote({ voterToken }) {
             <li key={candidate.id}>
               <strong>{candidate.name}</strong>
               <span>{candidate.voteCount} votes</span>
-              {electionOpen && <button onClick={() => vote(candidate.id)}>Vote</button>}
+              {electionOpen ? (
+                <button onClick={() => vote(candidate.id)} disabled={!canVote}>
+                  Vote
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>
       )}
+      {!electionOpen && <p>The election is currently closed.</p>}
       <p>{message}</p>
     </section>
   );

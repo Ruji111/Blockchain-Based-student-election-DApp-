@@ -1,0 +1,22 @@
+{
+  "voter123": {
+    "passwordHash": "$2b$10$oW9H6ITsy99yhfsXUQHzI..EAsgUpjKOcWRazSH2XvCvtseHIF07q",
+    "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+  },
+  "testvoter2": {
+    "passwordHash": "$2b$10$zdRKl9KCGsNooZY2/9fLsuXPjr3EYHoE0Sg5nFPZ6NWyJ5sF5SFhm",
+    "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+  },
+  "Reason": {
+    "passwordHash": "$2b$10$Vvhh9swzMLT4nlR4WDQFJOz96JhEL62yHQBG7o/gk4r6oUQ8D7Uqe",
+    "address": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+  },
+  "Ruji": {
+    "passwordHash": "$2b$10$MH9yyIUGbE5eLxZdXfpEHudtzPBBN6I0yQ4MKUP6MCU4Bm3MMu61y",
+    "address": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+  },
+  "Khangdu": {
+    "passwordHash": "$2b$10$d/pZr9yh5VudVwMAqm7UvuX6MzdxgD6yNewiNwh8Pf3EzjMMKNK7O",
+    "address": "0x75c7de0cd5b0eba521c5b040b8f6e00cb5a4bd09"
+  }
+}

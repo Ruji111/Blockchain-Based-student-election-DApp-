@@ -17,8 +17,34 @@ app.use(express.json());
 
 const jwtSecret = process.env.JWT_SECRET || "your-secret-key"; // Change in production
 
-// In-memory voter storage: voterId -> { passwordHash, address }
-const voters = new Map();
+// File-based voter storage with persistence
+const votersPath = path.resolve(__dirname, "voters.json");
+let voters = new Map();
+
+function loadVoters() {
+  try {
+    if (fs.existsSync(votersPath)) {
+      const data = JSON.parse(fs.readFileSync(votersPath, "utf8"));
+      voters = new Map(Object.entries(data));
+      console.log(`Loaded ${voters.size} voters from disk.`);
+    }
+  } catch (error) {
+    console.error("Error loading voters:", error.message);
+    voters = new Map();
+  }
+}
+
+function saveVoters() {
+  try {
+    const data = Object.fromEntries(voters);
+    fs.writeFileSync(votersPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error saving voters:", error.message);
+  }
+}
+
+loadVoters();
+
 
 const rpcUrl = process.env.RPC_URL || "http://127.0.0.1:8545";
 const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -100,6 +126,7 @@ app.post("/api/register-voter", async (req, res) => {
       await tx.wait();
     }
 
+    saveVoters();
     res.json({ success: true, voterId });
   } catch (error) {
     res.status(500).json({ error: error.message });
