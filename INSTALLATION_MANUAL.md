@@ -167,6 +167,4 @@ Available Hardhat test accounts (accessible via `/keys` page):
 - **Issues**: GitHub Issues for bugs/features
 
 ---
-
-**Version**: 1.0.0 | **Date**: April 30, 2026 | **Platforms**: Windows, macOS, Linux</content>
 <parameter name="filePath">INSTALLATION_MANUAL.md
